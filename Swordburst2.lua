@@ -26,7 +26,7 @@ local sendWebhook = (function()
         if not string.match(url, '^https://discord') then return end
 
         -- body.content = ping and '@Divh' or nil
-        body.content = ping and "<@"UserID">" or nil
+        body.content = ping and "<@" .. UserID .. ">" or nil
         body.username = 'SB2'
         body.avatar_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
         body.embeds = body.embeds or {{}}
