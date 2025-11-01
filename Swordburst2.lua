@@ -27,7 +27,7 @@ local sendWebhook = (function()
 
         -- body.content = ping and '@Divh' or nil
         --body.content = ping and ("<@" .. discordIDs[Options.PingTarget.Value] .. ">") or nil
-        body.content = body.content = ping and "@everyone" or nil
+        body.content = ping and "@Poubelle" or nil
         body.username = 'SB2'
         body.avatar_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
         body.embeds = body.embeds or {{}}
