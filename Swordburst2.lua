@@ -2346,6 +2346,10 @@ Drops:AddDropdown('AutoDismantle', { Text = 'Auto dismantle', Values = Rarities,
 Drops:AddInput('DropWebhook', { Text = 'Drop webhook', Placeholder = 'https://discord.com/api/webhooks/' })
 :OnChanged(sendTestMessage)
 
+Drops:AddDropdown('RaritiesForWebhook', { Text = 'Rarities for webhook', Values = Rarities, Default = Rarities, Multi = true, AllowNull = true })
+
+local dropList = {}
+
 Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
 Drops:AddToggle('PingMe', { Text = 'Ping Me', Default = false })
 Drops:AddToggle('PingFriend', { Text = 'Ping Friend', Default = false })
@@ -2360,9 +2364,7 @@ Options.PingFriend:OnChanged(function(v)
 end)
 
 
-Drops:AddDropdown('RaritiesForWebhook', { Text = 'Rarities for webhook', Values = Rarities, Default = Rarities, Multi = true, AllowNull = true })
 
-local dropList = {}
 
 Drops:AddDropdown('DropList', { Text = 'Drop list (select to dismantle)', Values = {}, AllowNull = true })
 :OnChanged(function(dropName)
