@@ -2338,8 +2338,8 @@ Drops:AddDropdown('RaritiesForWebhook', { Text = 'Rarities for webhook', Values 
 Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
 
 local DiscordIDs = {
-    Divh = "123456789012345678",   -- ton User ID
-    Turpez = "987654321098765432"  -- User ID de ton pote
+    Divh = "399587962939244548",   -- ton User ID
+    Turpez = "331526795759190028"  -- User ID de ton pote
 }
 
 Drops:AddDropdown('PingTarget', {
