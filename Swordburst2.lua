@@ -28,12 +28,12 @@ local sendWebhook = (function()
         -- body.content = ping and '@Divh' or nil
         body.content = ping and Options.PingTarget.Value or nil
         body.username = 'SB2'
-        body.avatar_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/Divh.png'
+        body.avatar_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
         body.embeds = body.embeds or {{}}
         body.embeds[1].timestamp = DateTime:now():ToIsoDate()
         body.embeds[1].footer = {
             text = 'SB2',
-            icon_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/Divh.png'
+            icon_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
         }
 
         http_request({
@@ -2332,8 +2332,6 @@ Drops:AddDropdown('AutoDismantle', { Text = 'Auto dismantle', Values = Rarities,
 
 Drops:AddInput('DropWebhook', { Text = 'Drop webhook', Placeholder = 'https://discord.com/api/webhooks/' })
 :OnChanged(sendTestMessage)
-
-Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
 
 Drops:AddDropdown('RaritiesForWebhook', { Text = 'Rarities for webhook', Values = Rarities, Default = Rarities, Multi = true, AllowNull = true })
 
