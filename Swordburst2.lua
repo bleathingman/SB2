@@ -46,6 +46,10 @@ local sendWebhook = (function()
     end
 end)()
 
+local DiscordIDs = {
+    Divh = "399587962939244548",   -- ton User ID
+    Turpez = "331526795759190028"  -- User ID de ton pote
+}
 
 local pingText = nil
 local selectedName = Options.PingTarget.Value
@@ -2346,11 +2350,6 @@ Drops:AddInput('DropWebhook', { Text = 'Drop webhook', Placeholder = 'https://di
 Drops:AddDropdown('RaritiesForWebhook', { Text = 'Rarities for webhook', Values = Rarities, Default = Rarities, Multi = true, AllowNull = true })
 
 Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
-
-local DiscordIDs = {
-    Divh = "399587962939244548",   -- ton User ID
-    Turpez = "331526795759190028"  -- User ID de ton pote
-}
 
 Drops:AddDropdown('PingTarget', {
     Text = 'Ping target',
