@@ -16,24 +16,18 @@ if queue_on_teleport then
     ]])
 end
 
+
+
 local sendWebhook = (function()
     local http_request = (syn and syn.request) or (fluxus and fluxus.request) or http_request or request
     local HttpService = game:GetService('HttpService')
 
-    return function(url, body, ping)
+    return function(url, body, pingText)  -- <-- ici pingText
         assert(type(url) == 'string')
         assert(type(body) == 'table')
         if not string.match(url, '^https://discord') then return end
 
-        local selectedName = Options.PingTarget.Value
-        local pingText = nil
-
-        if ping and selectedName and DiscordIDs[selectedName] then
-            pingText = "<@" .. DiscordIDs[selectedName] .. ">"
-        end
-
-        body.content = pingText
-
+        body.content = pingText  -- <-- met directement le texte du ping
         body.username = 'SB2'
         body.avatar_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
         body.embeds = body.embeds or {{}}
@@ -51,6 +45,15 @@ local sendWebhook = (function()
         })
     end
 end)()
+
+
+local pingText = nil
+local selectedName = Options.PingTarget.Value
+if Options.PingInMessage.Value and selectedName and DiscordIDs[selectedName] then
+    pingText = "<@" .. DiscordIDs[selectedName] .. ">"
+end
+
+sendWebhook(Options.DropWebhook.Value, body, pingText)
 
 local sendTestMessage = function(url)
     sendWebhook(
