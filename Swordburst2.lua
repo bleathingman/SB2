@@ -26,7 +26,7 @@ local sendWebhook = (function()
         if not string.match(url, '^https://discord') then return end
 
         -- body.content = ping and '@Divh' or nil
-        body.content = ping and "<@UserID>" or nil
+        body.content = ping and "<@"UserID">" or nil
         body.username = 'SB2'
         body.avatar_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
         body.embeds = body.embeds or {{}}
@@ -2338,8 +2338,8 @@ Drops:AddDropdown('RaritiesForWebhook', { Text = 'Rarities for webhook', Values 
 Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
 
 local discordIDs = {
-    Divh = "399587962939244548",   -- User ID
-    Turpez = "331526795759190028"  -- User ID
+    Divh = "divhth",   -- User ID
+    Turpez = "turpez"  -- User ID
 }
 
 Drops:AddDropdown('PingTarget', {
