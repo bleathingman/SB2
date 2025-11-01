@@ -16,35 +16,23 @@ if queue_on_teleport then
     ]])
 end
 
--- IDs Discord
-local Divh = "<@399587962939244548>"
-local Turpez = "<@331526795759190028>"
-
 local sendWebhook = (function()
     local http_request = (syn and syn.request) or (fluxus and fluxus.request) or http_request or request
     local HttpService = game:GetService('HttpService')
 
-    return function(url, body)
+    return function(url, body, ping)
         assert(type(url) == 'string')
         assert(type(body) == 'table')
         if not string.match(url, '^https://discord') then return end
 
-        -- Gestion du ping
-        local pingText = nil
-
-        if Options.PingMe and Options.PingMe.Value then
-            pingText = MY_DISCORD
-        elseif Options.PingFriend and Options.PingFriend.Value then
-            pingText = FRIEND_DISCORD
-        end
-
-        body.content = pingText
-        body.username = 'Bluu'
+        -- body.content = ping and '@Divh' or nil
+        body.content = ping and "<@UserID>" or nil
+        body.username = 'SB2'
         body.avatar_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
         body.embeds = body.embeds or {{}}
         body.embeds[1].timestamp = DateTime:now():ToIsoDate()
         body.embeds[1].footer = {
-            text = 'Bluu',
+            text = 'SB2',
             icon_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
         }
 
@@ -56,7 +44,6 @@ local sendWebhook = (function()
         })
     end
 end)()
-
 
 local sendTestMessage = function(url)
     sendWebhook(
@@ -245,7 +232,7 @@ local Toggles = Library.Toggles
 
 local lastUpdated = (function()
     local success, result = pcall(function()
-        local latestCommit = 'https://api.github.com/repos/bleathingman/SB2/commits?path=Swordburst2.lua&page=1&per_page=1'
+        local latestCommit = 'https://api.github.com/repos/Neuublue/SB2/commits?path=Swordburst2.lua&page=1&per_page=1'
         local isoDate = game:GetService('HttpService'):JSONDecode(game:HttpGet(latestCommit))[1].commit.committer.date
         return DateTime.fromIsoDate(isoDate):FormatLocalTime('l', 'en-us')
     end)
@@ -253,8 +240,8 @@ local lastUpdated = (function()
 end)()
 
 local Window = Library:CreateWindow({
-    Title = 'Divh',
-	Footer = 'Swordburst 2 | Updated ' .. lastUpdated,
+    Title = 'SB2',
+	Footer = 'Swordburst 2 | discord.gg/nKQp6VqzJF | Updated ' .. lastUpdated,
     Center = true,
     AutoShow = true,
     ToggleKeybind = Enum.KeyCode.End,
@@ -2348,23 +2335,21 @@ Drops:AddInput('DropWebhook', { Text = 'Drop webhook', Placeholder = 'https://di
 
 Drops:AddDropdown('RaritiesForWebhook', { Text = 'Rarities for webhook', Values = Rarities, Default = Rarities, Multi = true, AllowNull = true })
 
-local dropList = {}
-
 Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
-Drops:AddToggle('PingMe', { Text = 'Ping Me', Default = false })
-Drops:AddToggle('PingFriend', { Text = 'Ping Friend', Default = false })
 
--- Évite les deux activés en même temps
-Options.PingMe:OnChanged(function(v)
-    if v then Options.PingFriend:SetValue(false) end
-end)
+local discordIDs = {
+    Divh = "399587962939244548",   -- User ID
+    Turpez = "331526795759190028"  -- User ID
+}
 
-Options.PingFriend:OnChanged(function(v)
-    if v then Options.PingMe:SetValue(false) end
-end)
+Drops:AddDropdown('PingTarget', {
+    Text = 'Ping target',
+    Values = { 'Divh', 'Turpez' },
+    Default = '',
+    AllowNull = true
+})
 
-
-
+local dropList = {}
 
 Drops:AddDropdown('DropList', { Text = 'Drop list (select to dismantle)', Values = {}, AllowNull = true })
 :OnChanged(function(dropName)
@@ -2957,22 +2942,22 @@ Menu:AddLabel('Menu keybind'):AddKeyPicker('MenuKeybind', { Default = 'End', NoU
 Library.ToggleKeybind = Options.MenuKeybind
 
 local autoexecute = true
-if isfile('Divh/Swordburst 2/autoexec') and readfile('Divh/Swordburst 2/autoexec') == 'false' then
+if isfile('SB2/Swordburst 2/autoexec') and readfile('SB2/Swordburst 2/autoexec') == 'false' then
     autoexecute = false
 end
 
 Menu:AddToggle('Autoexecute', { Text = 'Autoexecute', Default = autoexecute }):OnChanged(function(value)
-    writefile('Divh/Swordburst 2/autoexec', tostring(value))
+    writefile('SB2/Swordburst 2/autoexec', tostring(value))
 end)
 
 local ThemeManager = loadstring(game:HttpGet(UIRepo .. 'addons/ThemeManager.lua'))()
 ThemeManager:SetLibrary(Library)
-ThemeManager:SetFolder('Divh/Swordburst 2')
+ThemeManager:SetFolder('SB2/Swordburst 2')
 ThemeManager:ApplyToTab(Settings)
 
 local SaveManager = loadstring(game:HttpGet(UIRepo .. 'addons/SaveManager.lua'))()
 SaveManager:SetLibrary(Library)
-SaveManager:SetFolder('Divh/Swordburst 2')
+SaveManager:SetFolder('SB2/Swordburst 2')
 SaveManager:IgnoreThemeSettings()
 SaveManager:BuildConfigSection(Settings)
 SaveManager:LoadAutoloadConfig()
@@ -2982,4 +2967,3 @@ local Credits = Settings:AddRightGroupbox('Credits')
 Credits:AddLabel('de_Neuublue - Script')
 Credits:AddLabel('Inori - UI library')
 Credits:AddLabel('wally - UI addons')
-Credits:AddLabel('Divh - Adaptation and addons')
