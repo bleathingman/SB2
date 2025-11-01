@@ -232,7 +232,7 @@ local Toggles = Library.Toggles
 
 local lastUpdated = (function()
     local success, result = pcall(function()
-        local latestCommit = 'https://api.github.com/repos/Neuublue/SB2/commits?path=Swordburst2.lua&page=1&per_page=1'
+        local latestCommit = 'https://api.github.com/repos/bleathingman/SB2/commits?path=Swordburst2.lua&page=1&per_page=1'
         local isoDate = game:GetService('HttpService'):JSONDecode(game:HttpGet(latestCommit))[1].commit.committer.date
         return DateTime.fromIsoDate(isoDate):FormatLocalTime('l', 'en-us')
     end)
