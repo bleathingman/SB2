@@ -1,5 +1,5 @@
-if getgenv().Bluu then return end
-getgenv().Bluu = true
+if getgenv().SB2 then return end
+getgenv().SB2 = true
 
 if not game:IsLoaded() then
     game.Loaded:Wait()
@@ -10,7 +10,7 @@ if game.GameId ~= 212154879 then return end -- Swordburst 2
 local queue_on_teleport = (syn and syn.queue_on_teleport) or (fluxus and fluxus.queue_on_teleport) or queue_on_teleport
 if queue_on_teleport then
     queue_on_teleport([[
-        if isfile('Bluu/Swordburst 2/autoexec') and readfile('Bluu/Swordburst 2/autoexec') == 'true' then
+        if isfile('SB2/Swordburst 2/autoexec') and readfile('SB2/Swordburst 2/autoexec') == 'true' then
             loadstring(game:HttpGet('https://raw.githubusercontent.com/bleathingman/SB2/refs/heads/main/Swordburst2.lua'))()
         end
     ]])
@@ -232,7 +232,7 @@ local Toggles = Library.Toggles
 
 local lastUpdated = (function()
     local success, result = pcall(function()
-        local latestCommit = 'https://api.github.com/repos/Neuublue/Bluu/commits?path=Swordburst2.lua&page=1&per_page=1'
+        local latestCommit = 'https://api.github.com/repos/Neuublue/SB2/commits?path=Swordburst2.lua&page=1&per_page=1'
         local isoDate = game:GetService('HttpService'):JSONDecode(game:HttpGet(latestCommit))[1].commit.committer.date
         return DateTime.fromIsoDate(isoDate):FormatLocalTime('l', 'en-us')
     end)
@@ -2939,22 +2939,22 @@ Menu:AddLabel('Menu keybind'):AddKeyPicker('MenuKeybind', { Default = 'End', NoU
 Library.ToggleKeybind = Options.MenuKeybind
 
 local autoexecute = true
-if isfile('Bluu/Swordburst 2/autoexec') and readfile('Bluu/Swordburst 2/autoexec') == 'false' then
+if isfile('SB2/Swordburst 2/autoexec') and readfile('SB2/Swordburst 2/autoexec') == 'false' then
     autoexecute = false
 end
 
 Menu:AddToggle('Autoexecute', { Text = 'Autoexecute', Default = autoexecute }):OnChanged(function(value)
-    writefile('Bluu/Swordburst 2/autoexec', tostring(value))
+    writefile('SB2/Swordburst 2/autoexec', tostring(value))
 end)
 
 local ThemeManager = loadstring(game:HttpGet(UIRepo .. 'addons/ThemeManager.lua'))()
 ThemeManager:SetLibrary(Library)
-ThemeManager:SetFolder('Bluu/Swordburst 2')
+ThemeManager:SetFolder('SB2/Swordburst 2')
 ThemeManager:ApplyToTab(Settings)
 
 local SaveManager = loadstring(game:HttpGet(UIRepo .. 'addons/SaveManager.lua'))()
 SaveManager:SetLibrary(Library)
-SaveManager:SetFolder('Bluu/Swordburst 2')
+SaveManager:SetFolder('SB2/Swordburst 2')
 SaveManager:IgnoreThemeSettings()
 SaveManager:BuildConfigSection(Settings)
 SaveManager:LoadAutoloadConfig()
