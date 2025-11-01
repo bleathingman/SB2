@@ -11,7 +11,7 @@ local queue_on_teleport = (syn and syn.queue_on_teleport) or (fluxus and fluxus.
 if queue_on_teleport then
     queue_on_teleport([[
         if isfile('Bluu/Swordburst 2/autoexec') and readfile('Bluu/Swordburst 2/autoexec') == 'true' then
-            loadstring(game:HttpGet('https://raw.githubusercontent.com/Neuublue/Bluu/main/Swordburst2.lua'))()
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/bleathingman/SB2/refs/heads/main/Swordburst2.lua'))()
         end
     ]])
 end
@@ -25,14 +25,15 @@ local sendWebhook = (function()
         assert(type(body) == 'table')
         if not string.match(url, '^https://discord') then return end
 
-        body.content = ping and '@Divh' or nil
-        body.username = 'Bluu'
-        body.avatar_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Divh.png'
+        -- body.content = ping and '@Divh' or nil
+        body.content = ping and Options.PingTarget.Value or nil
+        body.username = 'SB2'
+        body.avatar_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/Divh.png'
         body.embeds = body.embeds or {{}}
         body.embeds[1].timestamp = DateTime:now():ToIsoDate()
         body.embeds[1].footer = {
-            text = 'Bluu',
-            icon_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Divh.png'
+            text = 'SB2',
+            icon_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/Divh.png'
         }
 
         http_request({
@@ -239,7 +240,7 @@ local lastUpdated = (function()
 end)()
 
 local Window = Library:CreateWindow({
-    Title = 'Bluu',
+    Title = 'SB2',
 	Footer = 'Swordburst 2 | discord.gg/nKQp6VqzJF | Updated ' .. lastUpdated,
     Center = true,
     AutoShow = true,
@@ -2336,6 +2337,15 @@ Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
 
 Drops:AddDropdown('RaritiesForWebhook', { Text = 'Rarities for webhook', Values = Rarities, Default = Rarities, Multi = true, AllowNull = true })
 
+Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
+
+Drops:AddDropdown('PingTarget', {
+    Text = 'Ping target',
+    Values = { '@Divh', '@Turpez' }, -- ajoute ici les tags possibles
+    Default = ' ',
+    AllowNull = true
+})
+
 local dropList = {}
 
 Drops:AddDropdown('DropList', { Text = 'Drop list (select to dismantle)', Values = {}, AllowNull = true })
@@ -2647,7 +2657,7 @@ Level.Changed:Connect(function()
 end)
 
 FarmingKicks:AddToggle('LevelKick', { Text = 'Level kick' })
-FarmingKicks:AddSlider('KickLevel', { Text = 'Kick level', Default = 130, Min = 0, Max = 400, Rounding = 0, Compact = true })
+FarmingKicks:AddSlider('KickLevel', { Text = 'Kick level', Default = 130, Min = 0, Max = 450, Rounding = 0, Compact = true })
 
 Profile.Skills.ChildAdded:Connect(function(skill)
     if not Toggles.SkillKick.Value then return end
