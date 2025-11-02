@@ -16,6 +16,7 @@ if queue_on_teleport then
     ]])
 end
 
+-- Fonction d'envoi du webhook
 local sendWebhook = (function()
     local http_request = (syn and syn.request) or (fluxus and fluxus.request) or http_request or request
     local HttpService = game:GetService('HttpService')
@@ -25,8 +26,17 @@ local sendWebhook = (function()
         assert(type(body) == 'table')
         if not string.match(url, '^https://discord') then return end
 
-        -- body.content = ping and '@Divh' or nil
-        body.content = ping and ("<" .. discordIDs[Options.PingTarget.Value] .. ">") or nil
+        -- Récupération de l'ID Discord entré dans le menu
+        local userID = Options.PingUserID and Options.PingUserID.Value
+
+        -- Ajout du ping si activé et ID valide
+        if ping and userID and userID ~= '' then
+            body.content = "<@" .. userID .. ">"
+        else
+            body.content = nil
+        end
+
+        -- Config du message
         body.username = 'SB2'
         body.avatar_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
         body.embeds = body.embeds or {{}}
@@ -36,6 +46,7 @@ local sendWebhook = (function()
             icon_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
         }
 
+        -- Envoi du webhook
         http_request({
             Url = url,
             Body = HttpService:JSONEncode(body),
@@ -2335,18 +2346,13 @@ Drops:AddInput('DropWebhook', { Text = 'Drop webhook', Placeholder = 'https://di
 
 Drops:AddDropdown('RaritiesForWebhook', { Text = 'Rarities for webhook', Values = Rarities, Default = Rarities, Multi = true, AllowNull = true })
 
+-- Active / désactive le ping
 Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
 
-local discordIDs = {
-    Divh = "@399587962939244548",   -- User ID
-    Turpez = "@331526795759190028"  -- User ID
-}
-
-Drops:AddDropdown('PingTarget', {
-    Text = 'Ping target',
-    Values = { 'Divh', 'Turpez' },
-    Default = '',
-    AllowNull = true
+-- Champ texte pour entrer l'ID Discord à ping
+Drops:AddInput('PingUserID', {
+    Text = 'Discord user ID à ping',
+    Placeholder = 'Ex: 399587962939244548'
 })
 
 local dropList = {}
