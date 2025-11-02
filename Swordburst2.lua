@@ -16,56 +16,85 @@ if queue_on_teleport then
     ]])
 end
 
--- Fonction d'envoi du webhook
+-- === sendWebhook: robuste, compatible Lua, ping optionnel par ID ===
 local sendWebhook = (function()
     local http_request = (syn and syn.request) or (fluxus and fluxus.request) or http_request or request
     local HttpService = game:GetService('HttpService')
 
-    return function(url, body, ping)
-        assert(type(url) == 'string')
-        assert(type(body) == 'table')
-        if not string.match(url, '^https://discord') then return end
+    return function(url, body, pingFlag) -- pingFlag doit être boolean (true/false)
+        -- protections basiques
+        if type(url) ~= 'string' or type(body) ~= 'table' then
+            warn('sendWebhook: mauvais type d\'arguments')
+            return
+        end
+        if not string.match(url, '^https://discord') then
+            warn('sendWebhook: url invalide (doit commencer par https://discord)')
+            return
+        end
 
-        -- Récupération de l'ID Discord entré dans le menu
-        local userID = Options.PingUserID and Options.PingUserID.Value
+        -- récupère l'ID utilisateur entré dans le menu (si présent)
+        local userID
+        pcall(function()
+            userID = Options and Options.PingUserID and Options.PingUserID.Value
+        end)
 
-        -- Ajout du ping si activé et ID valide
-        if ping and userID and userID ~= '' then
-            body.content = "<@" .. userID .. ">"
+        -- construit le champ content uniquement si toggle activé ET ID fourni
+        if pingFlag and userID and userID ~= '' then
+            -- on utilise <@ID> (si jamais besoin, changer en <@!ID> si nécessaire)
+            body.content = "<@" .. tostring(userID) .. ">"
         else
             body.content = nil
         end
 
-        -- Config du message
-        body.username = 'SB2'
-        body.avatar_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
-        body.embeds = body.embeds or {{}}
-        body.embeds[1].timestamp = DateTime:now():ToIsoDate()
-        body.embeds[1].footer = {
+        -- safe ensure embed array
+        body.embeds = body.embeds or {}
+        body.embeds[1] = body.embeds[1] or {}
+
+        -- set standard fields
+        body.username = body.username or 'SB2'
+        body.avatar_url = body.avatar_url or 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
+        -- timestamp & footer
+        local ok_ts, iso = pcall(function() return DateTime:now():ToIsoDate() end)
+        if ok_ts then body.embeds[1].timestamp = iso end
+        body.embeds[1].footer = body.embeds[1].footer or {
             text = 'SB2',
             icon_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
         }
 
-        -- Envoi du webhook
-        http_request({
-            Url = url,
-            Body = HttpService:JSONEncode(body),
-            Method = 'POST',
-            Headers = { ['content-type'] = 'application/json' }
-        })
+        -- envoi HTTP (pcall pour éviter crash)
+        local success, err = pcall(function()
+            http_request({
+                Url = url,
+                Body = HttpService:JSONEncode(body),
+                Method = 'POST',
+                Headers = { ['content-type'] = 'application/json' }
+            })
+        end)
+        if not success then
+            warn('sendWebhook error:', err)
+        end
     end
 end)()
 
-local sendTestMessage = function(url)
-    sendWebhook(
-        url, {
-            embeds = {{
-                title = 'This is a test message',
-                description = `You'll be notified to this webhook`,
-                color = 0x00ff00
-            }}
-        }, (Toggles.PingInMessage and Toggles.PingInMessage.Value)
-    )
+-- === Exemple de fonction de test (bouton / callback) ===
+local function sendTestMessage()
+    local webhook = Options and Options.DropWebhook and Options.DropWebhook.Value
+    if not webhook or webhook == '' then
+        warn('Pas de webhook configuré dans DropWebhook')
+        return
+    end
+
+    local testBody = {
+        embeds = {{
+            title = "Test webhook",
+            description = "Test envoyé depuis le script",
+        }}
+    }
+
+    -- Important: on passe le toggle (bool) en 3ᵉ argument
+    local shouldPing = Options and Options.PingInMessage and Options.PingInMessage.Value
+    sendWebhook(webhook, testBody, shouldPing)
+    print('Test webhook envoyé (vérifie Discord). Ping demandé =', tostring(shouldPing))
 end
 
 local Players = game:GetService('Players')
@@ -2346,7 +2375,7 @@ Drops:AddInput('DropWebhook', { Text = 'Drop webhook', Placeholder = 'https://di
 
 Drops:AddDropdown('RaritiesForWebhook', { Text = 'Rarities for webhook', Values = Rarities, Default = Rarities, Multi = true, AllowNull = true })
 
--- Active / désactive le ping
+-- === UI: Ping toggle + champ texte pour entrer l'ID ===
 Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
 
 -- Champ texte pour entrer l'ID Discord à ping
