@@ -16,52 +16,78 @@ if queue_on_teleport then
     ]])
 end
 
--- sendWebhook robuste + debug (à coller à la place de ton sendWebhook actuel)
+-- ===== sendWebhook robuste (remplacer l'actuelle) =====
 local sendWebhook = (function()
     local http_request = (syn and syn.request) or (fluxus and fluxus.request) or http_request or request
     local HttpService = game:GetService('HttpService')
 
-    return function(url, body, ping)
-        assert(type(url) == 'string')
-        assert(type(body) == 'table')
-        if not string.match(url, '^https://discord') then return end
+    return function(url, body, pingFlag)
+        -- validations simples
+        if type(url) ~= 'string' or type(body) ~= 'table' then
+            warn('sendWebhook: mauvais arguments')
+            return
+        end
+        if not string.match(url, '^https://discord') then
+            warn('sendWebhook: url invalide (doit commencer par https://discord)')
+            return
+        end
 
-        -- Récupération de l'ID utilisateur entré dans le menu
-        local userID = Options.PingUserID and Options.PingUserID.Value or nil
+        -- récupération sécurisée de l'ID dans l'UI (Options peut être nil si pas encore créé)
+        local userID
+        pcall(function()
+            userID = Options and Options.PingUserID and tostring(Options.PingUserID.Value)
+        end)
 
-        -- Configuration du ping
-        if ping and userID and userID ~= '' then
-            body.content = "<@" .. userID .. ">"
-            body.allowed_mentions = { users = { tostring(userID) } }
+        -- construit embed minimal si absent
+        body.embeds = body.embeds or {}
+        body.embeds[1] = body.embeds[1] or {}
+
+        body.username = body.username or 'SB2'
+        body.avatar_url = body.avatar_url or 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
+        local ok_ts, iso = pcall(function() return DateTime:now():ToIsoDate() end)
+        if ok_ts then body.embeds[1].timestamp = iso end
+        body.embeds[1].footer = body.embeds[1].footer or {
+            text = 'SB2',
+            icon_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
+        }
+
+        -- gestion du ping + allowed_mentions
+        if pingFlag and userID and userID ~= '' then
+            if tostring(userID):match('^%d+$') then
+                body.content = "<@" .. userID .. ">"
+                body.allowed_mentions = { users = { userID } }
+            else
+                warn('sendWebhook: PingUserID invalide (doit être uniquement des chiffres) ->', userID)
+                body.content = nil
+                body.allowed_mentions = { parse = {} }
+            end
         else
             body.content = nil
             body.allowed_mentions = { parse = {} }
         end
 
-        body.username = 'SB2'
-        body.avatar_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
-        body.embeds = body.embeds or {{}}
-        body.embeds[1].timestamp = DateTime.now():ToIsoDate()
-        body.embeds[1].footer = {
-            text = 'SB2',
-            icon_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
-        }
+        -- DEBUG: affiche le JSON exact envoyé
+        local okEnc, json = pcall(function() return HttpService:JSONEncode(body) end)
+        if not okEnc then
+            warn('sendWebhook: échec de JSONEncode', json)
+            return
+        end
+        print('sendWebhook -> URL:', url)
+        print('sendWebhook -> JSON body:', json)
 
-        -- Envoi du webhook
-        local success, response = pcall(function()
-            return http_request({
+        -- envoi HTTP protégé
+        local s, err = pcall(function()
+            http_request({
                 Url = url,
-                Body = HttpService:JSONEncode(body),
+                Body = json,
                 Method = 'POST',
                 Headers = { ['content-type'] = 'application/json' }
             })
         end)
-
-        if not success then
-            warn('[Webhook Error]', response)
-        end
+        if not s then warn('sendWebhook HTTP error:', err) end
     end
 end)()
+
 
 
 
@@ -2385,7 +2411,7 @@ Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
 -- ✅ Ajoute un champ pour que chaque utilisateur mette son propre ID Discord
 Drops:AddInput('PingUserID', {
     Text = 'Discord User ID',
-    Placeholder = 'Ex: 399587962939244548'
+    Placeholder = 'Ex: 1234567890012'
 })
 
 
@@ -2449,7 +2475,7 @@ Inventory.ChildAdded:Connect(function(item)
                 }
             }
         }}
-    }, Toggles.PingInMessage.Value)
+    }, Toggles.PingInMessage and Toggles.PingInMessage.Value)
 end)
 
 local ownedSkillNames = {}
@@ -2484,7 +2510,7 @@ Profile.Skills.ChildAdded:Connect(function(skill)
                 }
             }
         }}
-    }, Toggles.PingInMessage.Value)
+    }, Toggles.PingInMessage and Toggles.PingInMessage.Value)
 end)
 
 local LevelsAndVelGained = Drops:AddLabel()
