@@ -17,74 +17,43 @@ if queue_on_teleport then
 end
 
 -- sendWebhook robuste + debug (à coller à la place de ton sendWebhook actuel)
-local sendWebhook = (function()
-    local http_request = (syn and syn.request) or (fluxus and fluxus.request) or http_request or request
-    local HttpService = game:GetService('HttpService')
+function sendWebhook(webhookURL, contentMsg, ping, userId)
+    local HttpService = game:GetService("HttpService")
+    -- Prépare les données du message
+    local data = {}
 
-    return function(url, body, pingFlag)
-        -- validations simples
-        if type(url) ~= 'string' or type(body) ~= 'table' then
-            warn('sendWebhook: mauvais arguments')
-            return
-        end
-        if not string.match(url, '^https://discord') then
-            warn('sendWebhook: url invalide (doit commencer par https://discord)')
-            return
-        end
-
-        -- récupère l'ID (sûr)
-        local userID
-        pcall(function()
-            userID = Options and Options.PingUserID and tostring(Options.PingUserID.Value)
-        end)
-
-        -- assure la table d'embed
-        body.embeds = body.embeds or {}
-        body.embeds[1] = body.embeds[1] or {}
-        body.username = body.username or 'SB2'
-        body.avatar_url = body.avatar_url or 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
-        local ok_ts, iso = pcall(function() return DateTime:now():ToIsoDate() end)
-        if ok_ts then body.embeds[1].timestamp = iso end
-        body.embeds[1].footer = body.embeds[1].footer or { text = 'SB2', icon_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png' }
-
-        -- construction du ping + allowed_mentions
-        if pingFlag and userID and userID ~= '' then
-            -- s'assure que userID contient seulement des chiffres
-            local onlyDigits = tostring(userID):match("^%d+$")
-            if onlyDigits then
-                body.content = "<@" .. userID .. ">"
-                body.allowed_mentions = { users = { userID } } -- <-- important pour que Discord accepte la mention
-            else
-                warn("sendWebhook: PingUserID invalide (doit être uniquement des chiffres). Valeur reçue:", userID)
-                body.content = nil
-                body.allowed_mentions = { parse = {} }
-            end
-        else
-            body.content = nil
-            body.allowed_mentions = { parse = {} } -- empêche tout ping par erreur
-        end
-
-        -- DEBUG : affiche dans la console le JSON qui va être envoyé (utile pour vérifier)
-        local okEnc, json = pcall(function() return HttpService:JSONEncode(body) end)
-        if okEnc then
-            print("sendWebhook -> URL:", url)
-            print("sendWebhook -> JSON body:", json)
-        else
-            warn("sendWebhook: échec encodage JSON:", json)
-        end
-
-        -- envoi HTTP (pcall pour éviter de crash)
-        local success, err = pcall(function()
-            http_request({
-                Url = url,
-                Body = json,
-                Method = 'POST',
-                Headers = { ['content-type'] = 'application/json' }
-            })
-        end)
-        if not success then warn('sendWebhook error:', err) end
+    -- Si ping activé et ID numérique, mentionne l'utilisateur
+    if ping and userId and tostring(userId):match("^%d+$") then
+        data.content = "<@" .. userId .. "> " .. (contentMsg or "")
+        data.allowed_mentions = { users = { tostring(userId) } }
+    else
+        -- Sinon, aucun ping autorisé
+        data.content = contentMsg or ""
+        data.allowed_mentions = { parse = {} }
     end
-end)()
+
+    -- Ajoute un embed avec timestamp ISO8601 et footer standard
+    data.embeds = {{
+        timestamp = DateTime.now():ToIsoDate(),  -- Horodatage ISO8601:contentReference[oaicite:9]{index=9}:contentReference[oaicite:10]{index=10}
+        footer = {
+            text = "Mon jeu Roblox",            -- Texte du footer
+            icon_url = "https://example.com/icon.png"  -- Icône du footer
+        }
+    }}
+
+    -- Encode la table en JSON et affiche pour debug
+    local jsonData = HttpService:JSONEncode(data)
+    print("Webhook JSON:", jsonData)
+
+    -- Envoi HTTP dans pcall pour gérer les erreurs (robustesse):contentReference[oaicite:11]{index=11}
+    local success, err = pcall(function()
+        HttpService:PostAsync(webhookURL, jsonData, Enum.HttpContentType.ApplicationJson)
+    end)
+    if not success then
+        warn("Erreur lors de l'envoi du webhook :", err)
+    end
+end
+
 
 
 -- === Exemple de fonction de test (bouton / callback) ===
