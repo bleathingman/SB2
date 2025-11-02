@@ -17,42 +17,51 @@ if queue_on_teleport then
 end
 
 -- sendWebhook robuste + debug (à coller à la place de ton sendWebhook actuel)
-function sendWebhook(webhookURL, contentMsg, ping, userId)
-    local HttpService = game:GetService("HttpService")
-    -- Prépare les données du message
-    local data = {}
+local sendWebhook = (function()
+    local http_request = (syn and syn.request) or (fluxus and fluxus.request) or http_request or request
+    local HttpService = game:GetService('HttpService')
 
-    -- Si ping activé et ID numérique, mentionne l'utilisateur
-    if ping and userId and tostring(userId):match("^%d+$") then
-        data.content = "<@" .. userId .. "> " .. (contentMsg or "")
-        data.allowed_mentions = { users = { tostring(userId) } }
-    else
-        -- Sinon, aucun ping autorisé
-        data.content = contentMsg or ""
-        data.allowed_mentions = { parse = {} }
-    end
+    return function(url, body, ping)
+        assert(type(url) == 'string')
+        assert(type(body) == 'table')
+        if not string.match(url, '^https://discord') then return end
 
-    -- Ajoute un embed avec timestamp ISO8601 et footer standard
-    data.embeds = {{
-        timestamp = DateTime.now():ToIsoDate(),  -- Horodatage ISO8601:contentReference[oaicite:9]{index=9}:contentReference[oaicite:10]{index=10}
-        footer = {
-            text = "Mon jeu Roblox",            -- Texte du footer
-            icon_url = "https://example.com/icon.png"  -- Icône du footer
+        -- Récupération de l'ID utilisateur entré dans le menu
+        local userID = Options.PingUserID and Options.PingUserID.Value or nil
+
+        -- Configuration du ping
+        if ping and userID and userID ~= '' then
+            body.content = "<@" .. userID .. ">"
+            body.allowed_mentions = { users = { tostring(userID) } }
+        else
+            body.content = nil
+            body.allowed_mentions = { parse = {} }
+        end
+
+        body.username = 'SB2'
+        body.avatar_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
+        body.embeds = body.embeds or {{}}
+        body.embeds[1].timestamp = DateTime.now():ToIsoDate()
+        body.embeds[1].footer = {
+            text = 'SB2',
+            icon_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
         }
-    }}
 
-    -- Encode la table en JSON et affiche pour debug
-    local jsonData = HttpService:JSONEncode(data)
-    print("Webhook JSON:", jsonData)
+        -- Envoi du webhook
+        local success, response = pcall(function()
+            return http_request({
+                Url = url,
+                Body = HttpService:JSONEncode(body),
+                Method = 'POST',
+                Headers = { ['content-type'] = 'application/json' }
+            })
+        end)
 
-    -- Envoi HTTP dans pcall pour gérer les erreurs (robustesse):contentReference[oaicite:11]{index=11}
-    local success, err = pcall(function()
-        HttpService:PostAsync(webhookURL, jsonData, Enum.HttpContentType.ApplicationJson)
-    end)
-    if not success then
-        warn("Erreur lors de l'envoi du webhook :", err)
+        if not success then
+            warn('[Webhook Error]', response)
+        end
     end
-end
+end)()
 
 
 
@@ -2344,25 +2353,41 @@ PlayersBox:AddSlider('XOffset', { Text = 'X offset', Default = 0, Min = -20, Max
 PlayersBox:AddSlider('YOffset', { Text = 'Y offset', Default = 5, Min = -20, Max = 20, Rounding = 0 })
 PlayersBox:AddSlider('ZOffset', { Text = 'Z offset', Default = 0, Min = -20, Max = 20, Rounding = 0 })
 
+--// SECTION: Drops
 local Drops = Misc:AddLeftGroupbox('Drops')
 
 local Rarities = { 'Common', 'Uncommon', 'Rare', 'Legendary', 'Tribute' }
 
-Drops:AddDropdown('AutoDismantle', { Text = 'Auto dismantle', Values = Rarities, Multi = true, AllowNull = true })
+Drops:AddDropdown('AutoDismantle', {
+    Text = 'Auto dismantle',
+    Values = Rarities,
+    Multi = true,
+    AllowNull = true
+})
 
-Drops:AddInput('DropWebhook', { Text = 'Drop webhook', Placeholder = 'https://discord.com/api/webhooks/' })
+Drops:AddInput('DropWebhook', {
+    Text = 'Drop webhook',
+    Placeholder = 'https://discord.com/api/webhooks/'
+})
 :OnChanged(sendTestMessage)
 
-Drops:AddDropdown('RaritiesForWebhook', { Text = 'Rarities for webhook', Values = Rarities, Default = Rarities, Multi = true, AllowNull = true })
+Drops:AddDropdown('RaritiesForWebhook', {
+    Text = 'Rarities for webhook',
+    Values = Rarities,
+    Default = Rarities,
+    Multi = true,
+    AllowNull = true
+})
 
--- === UI: Ping toggle + champ texte pour entrer l'ID ===
+-- ✅ Active ou désactive le ping dans le message
 Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
 
--- Champ texte pour entrer l'ID Discord à ping
+-- ✅ Ajoute un champ pour que chaque utilisateur mette son propre ID Discord
 Drops:AddInput('PingUserID', {
-    Text = 'Discord user ID à ping',
+    Text = 'Discord User ID',
     Placeholder = 'Ex: 399587962939244548'
 })
+
 
 local dropList = {}
 
