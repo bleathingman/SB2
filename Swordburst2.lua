@@ -21,70 +21,27 @@ local sendWebhook = (function()
     local http_request = (syn and syn.request) or (fluxus and fluxus.request) or http_request or request
     local HttpService = game:GetService('HttpService')
 
-    return function(url, body, pingFlag)
-        -- validations simples
-        if type(url) ~= 'string' or type(body) ~= 'table' then
-            warn('sendWebhook: mauvais arguments')
-            return
-        end
-        if not string.match(url, '^https://discord') then
-            warn('sendWebhook: url invalide (doit commencer par https://discord)')
-            return
-        end
+    return function(url, body, ping)
+        assert(type(url) == 'string')
+        assert(type(body) == 'table')
+        if not string.match(url, '^https://discord') then return end
 
-        -- récupération sécurisée de l'ID dans l'UI (Options peut être nil si pas encore créé)
-        local userID
-        pcall(function()
-            userID = Options and Options.PingUserID and tostring(Options.PingUserID.Value)
-        end)
-
-        -- construit embed minimal si absent
-        body.embeds = body.embeds or {}
-        body.embeds[1] = body.embeds[1] or {}
-
-        body.username = body.username or 'SB2'
-        body.avatar_url = body.avatar_url or 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
-        local ok_ts, iso = pcall(function() return DateTime:now():ToIsoDate() end)
-        if ok_ts then body.embeds[1].timestamp = iso end
-        body.embeds[1].footer = body.embeds[1].footer or {
-            text = 'SB2',
-            icon_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
+        body.content = ping and ('<@' .. (PingID or '') .. '>') or nil
+        body.username = 'Bluu'
+        body.avatar_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png'
+        body.embeds = body.embeds or {{}}
+        body.embeds[1].timestamp = DateTime:now():ToIsoDate()
+        body.embeds[1].footer = {
+            text = 'Bluu',
+            icon_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png'
         }
 
-        -- gestion du ping + allowed_mentions
-        if pingFlag and userID and userID ~= '' then
-            if tostring(userID):match('^%d+$') then
-                body.content = "<@" .. userID .. ">"
-                body.allowed_mentions = { users = { userID } }
-            else
-                warn('sendWebhook: PingUserID invalide (doit être uniquement des chiffres) ->', userID)
-                body.content = nil
-                body.allowed_mentions = { parse = {} }
-            end
-        else
-            body.content = nil
-            body.allowed_mentions = { parse = {} }
-        end
-
-        -- DEBUG: affiche le JSON exact envoyé
-        local okEnc, json = pcall(function() return HttpService:JSONEncode(body) end)
-        if not okEnc then
-            warn('sendWebhook: échec de JSONEncode', json)
-            return
-        end
-        print('sendWebhook -> URL:', url)
-        print('sendWebhook -> JSON body:', json)
-
-        -- envoi HTTP protégé
-        local s, err = pcall(function()
-            http_request({
-                Url = url,
-                Body = json,
-                Method = 'POST',
-                Headers = { ['content-type'] = 'application/json' }
-            })
-        end)
-        if not s then warn('sendWebhook HTTP error:', err) end
+        http_request({
+            Url = url,
+            Body = HttpService:JSONEncode(body),
+            Method = 'POST',
+            Headers = { ['content-type'] = 'application/json' }
+        })
     end
 end)()
 
@@ -2408,12 +2365,13 @@ Drops:AddDropdown('RaritiesForWebhook', {
 -- ✅ Active ou désactive le ping dans le message
 Drops:AddToggle('PingInMessage', { Text = 'Ping in message' })
 
--- ✅ Ajoute un champ pour que chaque utilisateur mette son propre ID Discord
-Drops:AddInput('PingUserID', {
-    Text = 'Discord User ID',
-    Placeholder = 'Ex: 1234567890012'
+Drops:AddInput('PingID', {
+    Text = 'Ping ID',
+    Placeholder = 'Ex: 987654321098765432'
 })
-
+:OnChanged(function(value)
+    PingID = value
+end)
 
 local dropList = {}
 
