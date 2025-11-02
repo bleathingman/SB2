@@ -40,10 +40,13 @@ local sendWebhook = (function()
 
         -- construit le champ content uniquement si toggle activé ET ID fourni
         if pingFlag and userID and userID ~= '' then
-            -- on utilise <@ID> (si jamais besoin, changer en <@!ID> si nécessaire)
-            body.content = "<@" .. tostring(userID) .. ">"
+        body.content = "<@" .. tostring(userID) .. ">"
+        body.allowed_mentions = {
+            users = { tostring(userID) }  -- autorise explicitement le ping de cet ID
+        }
         else
             body.content = nil
+            body.allowed_mentions = { parse = {} } -- empêche les pings non désirés
         end
 
         -- safe ensure embed array
