@@ -16,15 +16,15 @@ if queue_on_teleport then
     ]])
 end
 
--- === sendWebhook: robuste, compatible Lua, ping optionnel par ID ===
+-- sendWebhook robuste + debug (à coller à la place de ton sendWebhook actuel)
 local sendWebhook = (function()
     local http_request = (syn and syn.request) or (fluxus and fluxus.request) or http_request or request
     local HttpService = game:GetService('HttpService')
 
-    return function(url, body, pingFlag) -- pingFlag doit être boolean (true/false)
-        -- protections basiques
+    return function(url, body, pingFlag)
+        -- validations simples
         if type(url) ~= 'string' or type(body) ~= 'table' then
-            warn('sendWebhook: mauvais type d\'arguments')
+            warn('sendWebhook: mauvais arguments')
             return
         end
         if not string.match(url, '^https://discord') then
@@ -32,52 +32,60 @@ local sendWebhook = (function()
             return
         end
 
-        -- récupère l'ID utilisateur entré dans le menu (si présent)
+        -- récupère l'ID (sûr)
         local userID
         pcall(function()
-            userID = Options and Options.PingUserID and Options.PingUserID.Value
+            userID = Options and Options.PingUserID and tostring(Options.PingUserID.Value)
         end)
 
-        -- construit le champ content uniquement si toggle activé ET ID fourni
-        if pingFlag and userID and userID ~= '' then
-        body.content = "<@" .. tostring(userID) .. ">"
-        body.allowed_mentions = {
-            users = { tostring(userID) }  -- autorise explicitement le ping de cet ID
-        }
-        else
-            body.content = nil
-            body.allowed_mentions = { parse = {} } -- empêche les pings non désirés
-        end
-
-        -- safe ensure embed array
+        -- assure la table d'embed
         body.embeds = body.embeds or {}
         body.embeds[1] = body.embeds[1] or {}
-
-        -- set standard fields
         body.username = body.username or 'SB2'
         body.avatar_url = body.avatar_url or 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
-        -- timestamp & footer
         local ok_ts, iso = pcall(function() return DateTime:now():ToIsoDate() end)
         if ok_ts then body.embeds[1].timestamp = iso end
-        body.embeds[1].footer = body.embeds[1].footer or {
-            text = 'SB2',
-            icon_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
-        }
+        body.embeds[1].footer = body.embeds[1].footer or { text = 'SB2', icon_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png' }
 
-        -- envoi HTTP (pcall pour éviter crash)
+        -- construction du ping + allowed_mentions
+        if pingFlag and userID and userID ~= '' then
+            -- s'assure que userID contient seulement des chiffres
+            local onlyDigits = tostring(userID):match("^%d+$")
+            if onlyDigits then
+                body.content = "<@" .. userID .. ">"
+                body.allowed_mentions = { users = { userID } } -- <-- important pour que Discord accepte la mention
+            else
+                warn("sendWebhook: PingUserID invalide (doit être uniquement des chiffres). Valeur reçue:", userID)
+                body.content = nil
+                body.allowed_mentions = { parse = {} }
+            end
+        else
+            body.content = nil
+            body.allowed_mentions = { parse = {} } -- empêche tout ping par erreur
+        end
+
+        -- DEBUG : affiche dans la console le JSON qui va être envoyé (utile pour vérifier)
+        local okEnc, json = pcall(function() return HttpService:JSONEncode(body) end)
+        if okEnc then
+            print("sendWebhook -> URL:", url)
+            print("sendWebhook -> JSON body:", json)
+        else
+            warn("sendWebhook: échec encodage JSON:", json)
+        end
+
+        -- envoi HTTP (pcall pour éviter de crash)
         local success, err = pcall(function()
             http_request({
                 Url = url,
-                Body = HttpService:JSONEncode(body),
+                Body = json,
                 Method = 'POST',
                 Headers = { ['content-type'] = 'application/json' }
             })
         end)
-        if not success then
-            warn('sendWebhook error:', err)
-        end
+        if not success then warn('sendWebhook error:', err) end
     end
 end)()
+
 
 -- === Exemple de fonction de test (bouton / callback) ===
 local function sendTestMessage()
