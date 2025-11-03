@@ -244,7 +244,7 @@ local Toggles = Library.Toggles
 
 local lastUpdated = (function()
     local success, result = pcall(function()
-        local latestCommit = 'https://api.github.com/repos/Neuublue/SB2/commits?path=Swordburst2.lua&page=1&per_page=1'
+        local latestCommit = 'https://api.github.com/repos/bleathingman/SB2/commits?path=Swordburst2.lua&page=1&per_page=1'
         local isoDate = game:GetService('HttpService'):JSONDecode(game:HttpGet(latestCommit))[1].commit.committer.date
         return DateTime.fromIsoDate(isoDate):FormatLocalTime('l', 'en-us')
     end)
@@ -260,7 +260,7 @@ local Window = Library:CreateWindow({
     NotifySide = 'Left',
     ShowCustomCursor = false,
     CornerRadius = 0,
-    Icon = 166652117,
+    Icon = ('https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'),
     Resizable = true,
     MobileButtonsSide = 'Right',
     -- TabPadding = 8,
@@ -2988,8 +2988,5 @@ SaveManager:LoadAutoloadConfig()
 
 local Credits = Settings:AddRightGroupbox('Credits')
 
-Credits:AddLabel('de_Neuublue - Script')
-Credits:AddLabel('Divh - Script Addons')
+Credits:AddLabel('Divh - Script')
 Credits:AddLabel('Turpez - Script Addons')
-Credits:AddLabel('Inori - UI library')
-Credits:AddLabel('wally - UI addons')
