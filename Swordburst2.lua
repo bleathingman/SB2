@@ -28,7 +28,7 @@ local sendWebhook = (function()
 
         body.content = ping and ('<@' .. (PingID or '') .. '>') or nil
         body.username = 'Dovha'
-        body.avatar_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png
+        body.avatar_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
         body.embeds = body.embeds or {{}}
         body.embeds[1].timestamp = DateTime:now():ToIsoDate()
         body.embeds[1].footer = {
