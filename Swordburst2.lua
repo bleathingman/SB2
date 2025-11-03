@@ -252,8 +252,8 @@ local lastUpdated = (function()
 end)()
 
 local Window = Library:CreateWindow({
-    Title = 'SB2',
-	Footer = 'Swordburst 2 | discord.gg/nKQp6VqzJF | Updated ' .. lastUpdated,
+    Title = 'Dovha',
+	Footer = 'Swordburst 2 | Updated ' .. lastUpdated,
     Center = true,
     AutoShow = true,
     ToggleKeybind = Enum.KeyCode.End,
