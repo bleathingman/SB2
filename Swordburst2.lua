@@ -27,13 +27,13 @@ local sendWebhook = (function()
         if not string.match(url, '^https://discord') then return end
 
         body.content = ping and ('<@' .. (PingID or '') .. '>') or nil
-        body.username = 'Bluu'
-        body.avatar_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png'
+        body.username = 'JustBeBetter'
+        body.avatar_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png
         body.embeds = body.embeds or {{}}
         body.embeds[1].timestamp = DateTime:now():ToIsoDate()
         body.embeds[1].footer = {
             text = 'Bluu',
-            icon_url = 'https://raw.githubusercontent.com/Neuublue/Bluu/main/Bluu.png'
+            icon_url = 'https://raw.githubusercontent.com/bleathingman/SB2/main/bot_icon.png'
         }
 
         http_request({
@@ -2989,5 +2989,7 @@ SaveManager:LoadAutoloadConfig()
 local Credits = Settings:AddRightGroupbox('Credits')
 
 Credits:AddLabel('de_Neuublue - Script')
+Credits:AddLabel('Divh - Script Addons')
+Credits:AddLabel('Turpez - Script Addons')
 Credits:AddLabel('Inori - UI library')
 Credits:AddLabel('wally - UI addons')
